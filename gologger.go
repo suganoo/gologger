@@ -42,7 +42,7 @@ func getVersion() string {
 }
 
 // separatorとして下記の文字列に意味は無い。確率的に低いと推測して下記の文字列にした。
-// The characters of separator have no meaning, just used low probability of character conbination for separator.
+// The characters of separator have no meaning, just used low probability of character combination for separator.
 const separator = ":x%@:"
 const separator_inner = "=<$@%="
 
