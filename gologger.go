@@ -154,14 +154,16 @@ func Error(msg string) {
 	msg = keyLevel + separator_inner + "ERROR"   + separator + params + keyMessage + separator_inner + msg
 	log.Println(msg)
 }
+
+//===== the following funcs are not recommended
 func Fatal(msg string) {
 	params := getParameters()
-	msg = keyLevel + separator_inner + "ERROR"   + separator + params + keyMessage + separator_inner + msg
+	msg = keyLevel + separator_inner + "FATAL"   + separator + params + keyMessage + separator_inner + msg
 	log.Fatal(msg)
 }
 func Panic(msg string) {
 	params := getParameters()
-	msg = keyLevel + separator_inner + "ERROR"   + separator + params + keyMessage + separator_inner + msg
+	msg = keyLevel + separator_inner + "PANIC"   + separator + params + keyMessage + separator_inner + msg
 	log.Println(msg)
 	panic("log panic")
 }
