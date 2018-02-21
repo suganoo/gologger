@@ -17,10 +17,6 @@ type Statement struct {
 	username  string
 }
 
-func (x Statement) getVersion() string {
-	return version
-}
-
 func (x Statement) getHostname() string {
 	return x.hostname
 }
@@ -41,10 +37,14 @@ var keyFileLineNum string = "filelinenum"
 var keyFuncName    string = "funcname"
 
 const version = "1.0.0"
+func getVersion() string {
+	return version
+}
+
 // separatorとして下記の文字列に意味は無い。確率的に低いと推測して下記の文字列にした。
 // The characters of separator have no meaning, just used low probability of character conbination for separator.
-const separator = ":x=@:"
-const separator_inner = "====="
+const separator = ":x%@:"
+const separator_inner = "=<$@%="
 
 // log format
 type logWriter struct {
@@ -114,7 +114,7 @@ func getParameters() (params string) {
 	params = params + keyUserName     + separator_inner + st.getUsername()  + separator
 
 	// set version
-	params = params + keyVersion      + separator_inner + st.getVersion()   + separator
+	params = params + keyVersion      + separator_inner + getVersion()      + separator
 
 	// set process id
 	pid := os.Getpid()
