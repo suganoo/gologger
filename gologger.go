@@ -36,6 +36,8 @@ var keyFileName    string = "filename"
 var keyFileLineNum string = "filelinenum"
 var keyFuncName    string = "funcname"
 
+var muteDebug bool = true
+
 const version = "1.0.0"
 func getVersion() string {
 	return version
@@ -43,8 +45,8 @@ func getVersion() string {
 
 // separatorとして下記の文字列に意味は無い。確率的に低いと推測して下記の文字列にした。
 // The characters of separator have no meaning, just used low probability of character combination for separator.
-const separator = ":x%@:"
-const separator_inner = "=<$@%="
+const separator = ":x$@:"
+const separator_inner = "=<$@&="
 
 // log format
 type logWriter struct {
@@ -139,6 +141,21 @@ func getParameters() (params string) {
 	return
 }
 
+func MuteDebug() {
+        muteDebug = true
+}
+
+func UnmuteDebug() {
+        muteDebug = false
+}
+
+func Debug(msg string) {
+        if muteDebug { return }
+
+        params := getParameters()
+        msg = keyLevel + separator_inner + "DEBUG"    + separator + params + keyMessage + separator_inner + msg
+        log.Println(msg)
+}
 func Info(msg string) {
 	params := getParameters()
 	msg = keyLevel + separator_inner + "INFO"    + separator + params + keyMessage + separator_inner + msg
