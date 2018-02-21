@@ -2,6 +2,9 @@
 logger for Golang.
 
 ## How to use
+```
+go get -u github.com/suganoo/gologger
+```
 ```Go:gologgerSample.go
 package main
 
