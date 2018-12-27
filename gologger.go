@@ -1,6 +1,7 @@
 package gologger
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +11,11 @@ import (
 	"strconv"
 	"time"
 )
+
+const version = "1.0.0"
+func getVersion() string {
+	return version
+}
 
 // base statement
 type Statement struct {
@@ -36,12 +42,6 @@ var keyFileName    string = "filename"
 var keyFileLineNum string = "filelinenum"
 var keyFuncName    string = "funcname"
 
-var muteDebug bool = true
-
-const version = "1.0.0"
-func getVersion() string {
-	return version
-}
 
 // separatorとして下記の文字列に意味は無い。確率的に低いと推測して下記の文字列にした。
 // The characters of separator have no meaning, just used low probability of character combination for separator.
@@ -54,19 +54,8 @@ type logWriter struct {
 
 var f *(os.File)
 var err error
-func SetLogfile(path string) {
-	f, err = os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND,0644)
-	if err != nil {
-		Error("Error opening log file!" + err.Error())
-	}
-}
-
-func CloseFile() {
-	f.Close()
-}
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-
 	// separte message
 	msg := string(bytes)
 	msg  = strings.TrimRight(msg, "\n")
@@ -141,47 +130,75 @@ func getParameters() (params string) {
 	return
 }
 
-func MuteDebug() {
-        muteDebug = true
+type Configuration struct {
+	Logfile    string
+	ShowDebug  bool
 }
 
-func UnmuteDebug() {
-        muteDebug = false
+type Gologger struct {
+	Config     Configuration
 }
 
-func Debug(msg string) {
-        if muteDebug { return }
+func NewGologger(conf Configuration) (*Gologger) {
+	fmt.Println(conf)
+	gl := &Gologger{
+		Config: conf,
+	}
+	fmt.Println(gl.Config.ShowDebug)
+
+	f, err = os.OpenFile(gl.Config.Logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND,0644)
+	if err != nil {
+		errors.New("Error opening log file!" + err.Error())
+	}
+
+	return gl
+}
+
+func (g *Gologger)MuteDebug() {
+	g.Config.ShowDebug = false
+}
+
+func (g *Gologger)UnmuteDebug() {
+	g.Config.ShowDebug = true
+}
+
+func (g *Gologger)CloseFile() {
+	f.Close()
+}
+
+func (g *Gologger)Debug(msg string) {
+        if ! g.Config.ShowDebug { return }
 
         params := getParameters()
         msg = keyLevel + separator_inner + "DEBUG"    + separator + params + keyMessage + separator_inner + msg
         log.Println(msg)
 }
-func Info(msg string) {
+func (g *Gologger)Info(msg string) {
 	params := getParameters()
 	msg = keyLevel + separator_inner + "INFO"    + separator + params + keyMessage + separator_inner + msg
 	log.Println(msg)
 }
-func Warning(msg string) {
+func (g *Gologger)Warning(msg string) {
 	params := getParameters()
 	msg = keyLevel + separator_inner + "WARNING" + separator + params + keyMessage + separator_inner + msg
 	log.Println(msg)
 }
-func Error(msg string) {
+func (g *Gologger)Error(msg string) {
 	params := getParameters()
 	msg = keyLevel + separator_inner + "ERROR"   + separator + params + keyMessage + separator_inner + msg
 	log.Println(msg)
 }
 
 //===== the following funcs are not recommended
-func Fatal(msg string) {
+func (g *Gologger)Fatal(msg string) {
 	params := getParameters()
 	msg = keyLevel + separator_inner + "FATAL"   + separator + params + keyMessage + separator_inner + msg
 	log.Fatal(msg)
 }
-func Panic(msg string) {
+func (g *Gologger)Panic(msg string) {
 	params := getParameters()
 	msg = keyLevel + separator_inner + "PANIC"   + separator + params + keyMessage + separator_inner + msg
 	log.Println(msg)
-	panic("log panic")
+	panic("Panic in Gologger")
 }
 

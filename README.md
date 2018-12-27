@@ -13,28 +13,30 @@ import (
 	"github.com/suganoo/gologger"
 )
 
+var glog *gologger.Gologger
+
 func hogeFunc() {
-	gologger.Debug("this is debug hogeFunc")
-	gologger.Info("call hogeFunc")
+	glog.Debug("this is debug hogeFunc")
+	glog.Info("call hogeFunc")
 }
 
 func main() {
-	gologger.SetLogfile("./testlog.log")
-	defer gologger.CloseFile()
+	glog = gologger.NewGologger(gologger.Configuration{Logfile : "./testlog.log"})
+	defer glog.CloseFile()
 
 	msg := "hogehoge"
-	gologger.Debug("this is debug")   // default debug is muted
-	gologger.Info("this is info")
-	gologger.Info("msg : " + msg)
-	gologger.Warning("this is warning")
-	gologger.Error("this is Error")
+	glog.Debug("this is debug")   // default debug is muted
+	glog.Info("this is info")
+	glog.Info("msg : " + msg)
+	glog.Warning("this is warning")
+	glog.Error("this is Error")
 
-	gologger.UnmuteDebug()
+	glog.UnmuteDebug()
 	hogeFunc()
 
-	gologger.Debug("this is debug xxx")
-	gologger.MuteDebug()
-	gologger.Debug("this is debug yyy")  // this debug message is muted
+	glog.Debug("this is debug xxx")
+	glog.MuteDebug()
+	glog.Debug("this is debug yyy")  // this debug message is muted
 }
 ```
 ```
