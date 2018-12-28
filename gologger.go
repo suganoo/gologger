@@ -166,38 +166,48 @@ func (g *Gologger)CloseFile() {
 	f.Close()
 }
 
-func (g *Gologger)Debug(msg string) {
+func (g *Gologger)Debug(v ...interface{}) {
         if ! g.Config.ShowDebug { return }
 
+	msg := fmt.Sprint(v)
         params := getParameters()
-        msg = keyLevel + separator_inner + "DEBUG"    + separator + params + keyMessage + separator_inner + msg
+        msg = keyLevel + separator_inner + "DEBUG"    + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
         log.Println(msg)
 }
-func (g *Gologger)Info(msg string) {
+
+func (g *Gologger)Info(v ...interface{}) {
+	msg := fmt.Sprint(v)
 	params := getParameters()
-	msg = keyLevel + separator_inner + "INFO"    + separator + params + keyMessage + separator_inner + msg
+	msg = keyLevel + separator_inner + "INFO"    + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
 	log.Println(msg)
 }
-func (g *Gologger)Warning(msg string) {
+
+func (g *Gologger)Warning(v ...interface{}) {
+	msg := fmt.Sprint(v)
 	params := getParameters()
-	msg = keyLevel + separator_inner + "WARNING" + separator + params + keyMessage + separator_inner + msg
+	msg = keyLevel + separator_inner + "WARNING" + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
 	log.Println(msg)
 }
-func (g *Gologger)Error(msg string) {
+
+func (g *Gologger)Error(v ...interface{}) {
+	msg := fmt.Sprint(v)
 	params := getParameters()
-	msg = keyLevel + separator_inner + "ERROR"   + separator + params + keyMessage + separator_inner + msg
+	msg = keyLevel + separator_inner + "ERROR"   + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
 	log.Println(msg)
 }
 
 //===== the following funcs are not recommended
-func (g *Gologger)Fatal(msg string) {
+func (g *Gologger)Fatal(v ...interface{}) {
+	msg := fmt.Sprint(v)
 	params := getParameters()
-	msg = keyLevel + separator_inner + "FATAL"   + separator + params + keyMessage + separator_inner + msg
+	msg = keyLevel + separator_inner + "FATAL"   + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
 	log.Fatal(msg)
 }
-func (g *Gologger)Panic(msg string) {
+
+func (g *Gologger)Panic(v ...interface{}) {
+	msg := fmt.Sprint(v)
 	params := getParameters()
-	msg = keyLevel + separator_inner + "PANIC"   + separator + params + keyMessage + separator_inner + msg
+	msg = keyLevel + separator_inner + "PANIC"   + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
 	log.Println(msg)
 	panic("Panic in Gologger")
 }
