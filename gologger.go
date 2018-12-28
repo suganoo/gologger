@@ -32,55 +32,22 @@ func (x Statement) getUsername() string {
 }
 
 var st Statement
-var keyLevel       string = "level"
-var keyMessage     string = "msg"
-var keyVersion     string = "version"
-var keyHostName    string = "hostname"
-var keyUserName    string = "user"
-var keyPid         string = "pid"
-var keyFileName    string = "filename"
-var keyFileLineNum string = "filelinenum"
-var keyFuncName    string = "funcname"
 
-
-// separatorとして下記の文字列に意味は無い。確率的に低いと推測して下記の文字列にした。
-// The characters of separator have no meaning, just used low probability of character combination for separator.
-const separator = ":x$@:"
-const separator_inner = "=<$@&="
+const separator = "\t"
 
 // log format
-type logWriter struct {
+type LogWriter struct {
 }
 
 var f *(os.File)
 var err error
 
-func (writer logWriter) Write(bytes []byte) (int, error) {
-	// separte message
+func (writer LogWriter) Write(bytes []byte) (int, error) {
 	msg := string(bytes)
-	msg  = strings.TrimRight(msg, "\n")
-	msgArry := strings.Split(msg, separator)
-	paramsMap := make(map[string]string)
-	for _, item := range msgArry {
-		itemArry := strings.Split(item, separator_inner)
-		paramsMap[itemArry[0]] = itemArry[1]
-	}
-
-	// assemble log message
-	var logMsg string
-	outputSeparator := "\t"
-	logMsg =          paramsMap[keyLevel]     + outputSeparator
-	logMsg = logMsg + paramsMap[keyHostName]  + outputSeparator
-	logMsg = logMsg + paramsMap[keyPid]       + outputSeparator
-	logMsg = logMsg + paramsMap[keyUserName]  + outputSeparator
-	logMsg = logMsg + paramsMap[keyVersion]   + outputSeparator
-	logMsg = logMsg + paramsMap[keyMessage]   + outputSeparator
-	logMsg = logMsg + paramsMap[keyFuncName]  + outputSeparator
-	logMsg = logMsg + "[" + paramsMap[keyFileName] + ":" + paramsMap[keyFileLineNum] + "]"
 	timestamp := time.Now().Format("2006-01-02T15:04:05.000-07:00")
-	logMsg = timestamp + outputSeparator + logMsg
+	logMsg := timestamp + separator + msg
 
-	return f.Write(([]byte)(logMsg + "\n"))
+	return f.Write(([]byte)(logMsg))
 }
 
 func init() {
@@ -93,40 +60,43 @@ func init() {
 
 	// log settings
 	log.SetFlags(0)
-	log.SetOutput(new(logWriter))
+	log.SetOutput(new(LogWriter))
 }
 
-func getParameters() (params string) {
+func arrangeLog(logLevel, msg string) (logMsg string) {
+
+	// set log level
+	logMsg = logLevel + separator
 
 	// set hostname
-	params = params + keyHostName     + separator_inner + st.getHostname()  + separator
-
-	// set user name
-	params = params + keyUserName     + separator_inner + st.getUsername()  + separator
-
-	// set version
-	params = params + keyVersion      + separator_inner + getVersion()      + separator
+	logMsg = logMsg + st.getHostname()  + separator
 
 	// set process id
 	pid := os.Getpid()
-	params = params + keyPid          + separator_inner + strconv.Itoa(pid) + separator
+	logMsg = logMsg + strconv.Itoa(pid) + separator
 
-	// can not get thread name....
+	// set user name
+	logMsg = logMsg + st.getUsername()  + separator
+
+	// set version
+	logMsg = logMsg + getVersion()      + separator
+
+	// set log message
+	logMsg = logMsg + msg               + separator
 
 	// call file statement
 	programCounter, filePath, fileLineNum, _ := runtime.Caller(2)
 	filePathArry := strings.Split(fmt.Sprintf("%v",filePath), "/")
 
-	// set filename
-	params = params + keyFileName     + separator_inner + filePathArry[len(filePathArry) - 1] + separator
-	// set file line number
-	params = params + keyFileLineNum  + separator_inner + strconv.Itoa(fileLineNum) + separator
-
 	// set called function name
 	fn := runtime.FuncForPC(programCounter)
 	fnNameArry := strings.Split(fn.Name(), ".")
-	funcName := fnNameArry[1]
-	params = params + keyFuncName     + separator_inner + funcName + separator
+
+	logMsg = logMsg + fnNameArry[1]     + separator
+
+	// set filename
+	logMsg = logMsg + "[" + filePathArry[len(filePathArry) - 1] + ":" + strconv.Itoa(fileLineNum) + "]"
+
 	return
 }
 
@@ -169,45 +139,39 @@ func (g *Gologger)Debug(v ...interface{}) {
         if ! g.Config.ShowDebug { return }
 
 	msg := fmt.Sprint(v)
-        params := getParameters()
-        msg = keyLevel + separator_inner + "DEBUG"    + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
-        log.Println(msg)
+	logMsg := arrangeLog("DEBUG", msg[1:len(msg)-1])
+	log.Println(logMsg)
 }
 
 func (g *Gologger)Info(v ...interface{}) {
 	msg := fmt.Sprint(v)
-	params := getParameters()
-	msg = keyLevel + separator_inner + "INFO"    + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
-	log.Println(msg)
+	logMsg := arrangeLog("INFO", msg[1:len(msg)-1])
+	log.Println(logMsg)
 }
 
 func (g *Gologger)Warning(v ...interface{}) {
 	msg := fmt.Sprint(v)
-	params := getParameters()
-	msg = keyLevel + separator_inner + "WARNING" + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
-	log.Println(msg)
+	logMsg := arrangeLog("WARNING", msg[1:len(msg)-1])
+	log.Println(logMsg)
 }
 
 func (g *Gologger)Error(v ...interface{}) {
 	msg := fmt.Sprint(v)
-	params := getParameters()
-	msg = keyLevel + separator_inner + "ERROR"   + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
-	log.Println(msg)
+	logMsg := arrangeLog("ERROR", msg[1:len(msg)-1])
+	log.Println(logMsg)
 }
 
 //===== the following funcs are not recommended
 func (g *Gologger)Fatal(v ...interface{}) {
 	msg := fmt.Sprint(v)
-	params := getParameters()
-	msg = keyLevel + separator_inner + "FATAL"   + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
-	log.Fatal(msg)
+	logMsg := arrangeLog("FATAL", msg[1:len(msg)-1])
+	log.Println(logMsg)
 }
 
 func (g *Gologger)Panic(v ...interface{}) {
 	msg := fmt.Sprint(v)
-	params := getParameters()
-	msg = keyLevel + separator_inner + "PANIC"   + separator + params + keyMessage + separator_inner + msg[1:len(msg)-1]
-	log.Println(msg)
-	panic("Panic in Gologger")
+	logMsg := arrangeLog("PANIC", msg[1:len(msg)-1])
+	log.Println(logMsg)
+	panic("Call panic from Gologger")
 }
 
