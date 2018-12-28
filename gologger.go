@@ -48,6 +48,7 @@ type PositionItems struct {
 }
 
 var st Statement
+var posItems PositionItems
 var f *(os.File)
 var err error
 
@@ -62,6 +63,16 @@ func init() {
 	// log settings
 	log.SetFlags(0)
 	log.SetOutput(new(LogWriter))
+
+	// item position
+	posItems.PosLogLevel   = 1
+	posItems.PosHostname   = 2
+	posItems.PosPid        = 3
+	posItems.PosUserName   = 4
+	posItems.PosVersion    = 5
+	posItems.PosMessage    = 6
+	posItems.PosFuncName   = 7
+	posItems.PosFileName   = 8
 }
 
 func (writer LogWriter) Write(bytes []byte) (int, error) {
