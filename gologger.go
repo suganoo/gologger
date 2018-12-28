@@ -140,7 +140,6 @@ type Gologger struct {
 }
 
 func NewGologger(conf Configuration) (*Gologger) {
-	fmt.Println(conf)
 	gl := &Gologger{
 		Config: conf,
 	}
