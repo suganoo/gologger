@@ -12,8 +12,9 @@ import (
 	"time"
 )
 
-const version = "1.0.0"
-const separator = "\t"
+var version = "1.0.0"
+var separator = "\t"
+var timeFormat = "2006-01-02T15:04:05.000-07:00"
 
 // base statement
 type Statement struct {
@@ -35,6 +36,17 @@ type Gologger struct {
 	Config     Configuration
 }
 
+type PositionItems struct {
+	PosLogLevel   int
+	PosHostname   int
+	PosPid        int
+	PosUserName   int
+	PosVersion    int
+	PosMessage    int
+	PosFuncName   int
+	PosFileName   int
+}
+
 var st Statement
 var f *(os.File)
 var err error
@@ -54,14 +66,27 @@ func init() {
 
 func (writer LogWriter) Write(bytes []byte) (int, error) {
 	msg := string(bytes)
-	timestamp := time.Now().Format("2006-01-02T15:04:05.000-07:00")
+	timestamp := time.Now().Format(timeFormat)
 	logMsg := timestamp + separator + msg
 
 	return f.Write(([]byte)(logMsg))
 }
 
+
 func getVersion() string {
 	return version
+}
+
+func SetVersion(vers string) {
+	version = vers
+}
+
+func SetSeparator(sep string) {
+	separator = sep
+}
+
+func SetTimeFormat(tf string) {
+	timeFormat = tf
 }
 
 func (x Statement) getHostname() string {
