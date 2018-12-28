@@ -13,9 +13,7 @@ import (
 )
 
 const version = "1.0.0"
-func getVersion() string {
-	return version
-}
+const separator = "\t"
 
 // base statement
 type Statement struct {
@@ -23,32 +21,23 @@ type Statement struct {
 	username  string
 }
 
-func (x Statement) getHostname() string {
-	return x.hostname
-}
-
-func (x Statement) getUsername() string {
-	return x.username
-}
-
-var st Statement
-
-const separator = "\t"
-
 // log format
 type LogWriter struct {
 }
 
+// Gologger struct
+type Configuration struct {
+	Logfile    string
+	ShowDebug  bool
+}
+
+type Gologger struct {
+	Config     Configuration
+}
+
+var st Statement
 var f *(os.File)
 var err error
-
-func (writer LogWriter) Write(bytes []byte) (int, error) {
-	msg := string(bytes)
-	timestamp := time.Now().Format("2006-01-02T15:04:05.000-07:00")
-	logMsg := timestamp + separator + msg
-
-	return f.Write(([]byte)(logMsg))
-}
 
 func init() {
 	// set hostname, username ....
@@ -61,6 +50,26 @@ func init() {
 	// log settings
 	log.SetFlags(0)
 	log.SetOutput(new(LogWriter))
+}
+
+func (writer LogWriter) Write(bytes []byte) (int, error) {
+	msg := string(bytes)
+	timestamp := time.Now().Format("2006-01-02T15:04:05.000-07:00")
+	logMsg := timestamp + separator + msg
+
+	return f.Write(([]byte)(logMsg))
+}
+
+func getVersion() string {
+	return version
+}
+
+func (x Statement) getHostname() string {
+	return x.hostname
+}
+
+func (x Statement) getUsername() string {
+	return x.username
 }
 
 func arrangeLog(logLevel, msg string) (logMsg string) {
@@ -98,15 +107,6 @@ func arrangeLog(logLevel, msg string) (logMsg string) {
 	logMsg = logMsg + "[" + filePathArry[len(filePathArry) - 1] + ":" + strconv.Itoa(fileLineNum) + "]"
 
 	return
-}
-
-type Configuration struct {
-	Logfile    string
-	ShowDebug  bool
-}
-
-type Gologger struct {
-	Config     Configuration
 }
 
 func NewGologger(conf Configuration) (*Gologger) {
