@@ -164,7 +164,6 @@ func NewGologger(conf Configuration) (*Gologger) {
 	gl := &Gologger{
 		Config: conf,
 	}
-	fmt.Println(gl.Config.ShowDebug)
 
 	f, err = os.OpenFile(gl.Config.Logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND,0644)
 	if err != nil {
