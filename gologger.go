@@ -36,19 +36,16 @@ type Gologger struct {
 	Config     Configuration
 }
 
-type PositionItems struct {
-	PosLogLevel   int
-	PosHostname   int
-	PosPid        int
-	PosUserName   int
-	PosVersion    int
-	PosMessage    int
-	PosFuncName   int
-	PosFileName   int
-}
+var KeyLogLevel = "LogLevel"
+var KeyHostname = "Hostname"
+var KeyPid      = "Pid"
+var KeyUserName = "UserName"
+var KeyVersion  = "Version"
+var KeyMessage  = "Message"
+var KeyFuncAndFileName = "FuncAndFileName"
 
 var st Statement
-var posItems PositionItems
+var logItems []string
 var f *(os.File)
 var err error
 
@@ -64,15 +61,14 @@ func init() {
 	log.SetFlags(0)
 	log.SetOutput(new(LogWriter))
 
-	// item position
-	posItems.PosLogLevel   = 1
-	posItems.PosHostname   = 2
-	posItems.PosPid        = 3
-	posItems.PosUserName   = 4
-	posItems.PosVersion    = 5
-	posItems.PosMessage    = 6
-	posItems.PosFuncName   = 7
-	posItems.PosFileName   = 8
+	// log item position
+	logItems = append(logItems, KeyLogLevel)
+	logItems = append(logItems, KeyHostname)
+	logItems = append(logItems, KeyPid)
+	logItems = append(logItems, KeyUserName)
+	logItems = append(logItems, KeyVersion)
+	logItems = append(logItems, KeyMessage)
+	logItems = append(logItems, KeyFuncAndFileName)
 }
 
 func (writer LogWriter) Write(bytes []byte) (int, error) {
@@ -108,41 +104,60 @@ func (x Statement) getUsername() string {
 	return x.username
 }
 
+func SetItemsList(itemsList []string) {
+	logItems = itemsList
+}
+
 func arrangeLog(logLevel, msg string) (logMsg string) {
 
-	// set log level
-	logMsg = logLevel + separator
-
-	// set hostname
-	logMsg = logMsg + st.getHostname()  + separator
-
-	// set process id
-	pid := os.Getpid()
-	logMsg = logMsg + strconv.Itoa(pid) + separator
-
-	// set user name
-	logMsg = logMsg + st.getUsername()  + separator
-
-	// set version
-	logMsg = logMsg + getVersion()      + separator
-
-	// set log message
-	logMsg = logMsg + msg               + separator
-
-	// call file statement
-	programCounter, filePath, fileLineNum, _ := runtime.Caller(2)
-	filePathArry := strings.Split(fmt.Sprintf("%v",filePath), "/")
-
-	// set called function name
-	fn := runtime.FuncForPC(programCounter)
-	fnNameArry := strings.Split(fn.Name(), ".")
-
-	logMsg = logMsg + fnNameArry[1]     + separator
-
-	// set filename
-	logMsg = logMsg + "[" + filePathArry[len(filePathArry) - 1] + ":" + strconv.Itoa(fileLineNum) + "]"
-
+	for _, item := range logItems {
+		if (item == KeyLogLevel) {
+			// set log level
+			logMsg = logMsg + logLevel + separator
+			continue
+		}
+		if (item == KeyMessage) {
+			// set log message
+			logMsg = logMsg + msg      + separator
+			continue
+		}
+		
+		logMsg = logMsg + getItem(item) + separator
+	}
 	return
+}
+
+func getItem(logType string) (string) {
+	if (logType == KeyHostname) {
+		// set hostname
+		return st.getHostname()
+	}
+	if (logType == KeyPid) {
+		// set process id
+		pid := os.Getpid()
+		return strconv.Itoa(pid)
+	}
+	if (logType == KeyUserName) {
+		// set user name
+		return st.getUsername()
+	}
+	if (logType == KeyVersion) {
+		// set version
+		return getVersion()
+	}
+	if (logType == KeyFuncAndFileName) {
+		// call file statement
+		programCounter, filePath, fileLineNum, _ := runtime.Caller(3)
+		filePathArry := strings.Split(fmt.Sprintf("%v",filePath), "/")
+	
+		// set called function name
+		fn := runtime.FuncForPC(programCounter)
+		fnNameArry := strings.Split(fn.Name(), ".")
+	
+		// set function and filename with line number
+		return fnNameArry[1]     + separator + "[" + filePathArry[len(filePathArry) - 1] + ":" + strconv.Itoa(fileLineNum) + "]"
+	}
+	return ""
 }
 
 func NewGologger(conf Configuration) (*Gologger) {
