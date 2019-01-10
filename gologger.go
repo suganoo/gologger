@@ -38,7 +38,8 @@ type Gologger struct {
 
 var KeyLogLevel = "LogLevel"
 var KeyHostname = "Hostname"
-var KeyPid      = "Pid"
+var KeyProcessId   = "ProcessId"
+var KeyGoroutineId = "GoroutineId"
 var KeyUserName = "UserName"
 var KeyVersion  = "Version"
 var KeyMessage  = "Message"
@@ -64,7 +65,8 @@ func init() {
 	// log item position
 	logItems = append(logItems, KeyLogLevel)
 	logItems = append(logItems, KeyHostname)
-	logItems = append(logItems, KeyPid)
+	logItems = append(logItems, KeyProcessId)
+	logItems = append(logItems, KeyGoroutineId)
 	logItems = append(logItems, KeyUserName)
 	logItems = append(logItems, KeyVersion)
 	logItems = append(logItems, KeyMessage)
@@ -132,10 +134,24 @@ func getItem(logType string) (string) {
 		// set hostname
 		return st.getHostname()
 	}
-	if (logType == KeyPid) {
+	if (logType == KeyProcessId) {
 		// set process id
 		pid := os.Getpid()
 		return strconv.Itoa(pid)
+	}
+	if (logType == KeyGoroutineId) {
+		// get and set goroutine id
+		rsb := make([]byte, 64)
+		// the content of runtime stack is like this.
+		// ----------------------------
+		// goroutine 1 [running]:
+		// main.main()
+		//     C:/.....
+		runtime.Stack(rsb, false)
+		// so get goroutine id
+		// "goroutine 1 [running]:" --> "1"
+		return "GrtnID:" + strings.Split(string(rsb)," ")[1]
+
 	}
 	if (logType == KeyUserName) {
 		// set user name
