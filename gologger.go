@@ -204,38 +204,38 @@ func (g *Gologger)CloseFile() {
 func (g *Gologger)Debug(v ...interface{}) {
         if ! g.Config.ShowDebug { return }
 
-	msg := fmt.Sprint(v)
+	msg := fmt.Sprintf("%v", v)
 	logMsg := arrangeLog("DEBUG", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Info(v ...interface{}) {
-	msg := fmt.Sprint(v)
+	msg := fmt.Sprintf("%v", v)
 	logMsg := arrangeLog("INFO", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Warning(v ...interface{}) {
-	msg := fmt.Sprint(v)
+	msg := fmt.Sprintf("%v", v)
 	logMsg := arrangeLog("WARNING", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Error(v ...interface{}) {
-	msg := fmt.Sprint(v)
+	msg := fmt.Sprintf("%v", v)
 	logMsg := arrangeLog("ERROR", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 //===== the following funcs are not recommended
 func (g *Gologger)Fatal(v ...interface{}) {
-	msg := fmt.Sprint(v)
+	msg := fmt.Sprintf("%v", v)
 	logMsg := arrangeLog("FATAL", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Panic(v ...interface{}) {
-	msg := fmt.Sprint(v)
+	msg := fmt.Sprintf("%v", v)
 	logMsg := arrangeLog("PANIC", msg[1:len(msg)-1])
 	log.Println(logMsg)
 	panic("Call panic from Gologger")
