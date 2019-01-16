@@ -37,7 +37,7 @@ type Gologger struct {
 }
 
 var KeyLogLevel = "LogLevel"
-var KeyHostname = "Hostname"
+var KeyHostName = "HostName"
 var KeyProcessId   = "ProcessId"
 var KeyGoroutineId = "GoroutineId"
 var KeyUserName = "UserName"
@@ -64,7 +64,7 @@ func init() {
 
 	// log item position
 	logItems = append(logItems, KeyLogLevel)
-	logItems = append(logItems, KeyHostname)
+	logItems = append(logItems, KeyHostName)
 	logItems = append(logItems, KeyProcessId)
 	logItems = append(logItems, KeyGoroutineId)
 	logItems = append(logItems, KeyUserName)
@@ -130,7 +130,7 @@ func arrangeLog(logLevel, msg string) (logMsg string) {
 }
 
 func getItem(logType string) (string) {
-	if (logType == KeyHostname) {
+	if (logType == KeyHostName) {
 		// set hostname
 		return st.getHostname()
 	}
