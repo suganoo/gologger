@@ -181,9 +181,14 @@ func NewGologger(conf Configuration) (*Gologger) {
 		Config: conf,
 	}
 
-	f, err = os.OpenFile(gl.Config.Logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND,0644)
-	if err != nil {
-		errors.New("Error opening log file!" + err.Error())
+	if gl.Config.Logfile == "" {
+		f = os.Stdout
+	} else {
+		f, err = os.OpenFile(gl.Config.Logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND,0644)
+		if err != nil {
+			errors.New("Error opening log file!" + err.Error())
+			os.Exit(1)
+		}
 	}
 
 	return gl
