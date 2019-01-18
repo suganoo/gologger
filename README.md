@@ -53,6 +53,12 @@ testlog.log
 2018-02-21T10:07:44.277+09:00	INFO	hoge.sever	3892	GrtnID:1	fuga-user	1.0.0	call hogeFunc	hogeFunc	[gologgerSample.go:9]
 2018-02-21T10:07:44.277+09:00	DEBUG	hoge.sever	3892	GrtnID:1	fuga-user	1.0.0	this is debug xxx	main	[gologgerSample.go:26]
 ```
+### Stdout
+if set empty in "Logfile", it shows log in os.Stdout.
+```
+glog = gologger.NewGologger(gologger.Configuration{})
+glog.Info("test")
+```
 ## Option
 ### Any type of message
 Any type of messages can be logged.
@@ -85,7 +91,8 @@ glog.Info("ddddddddddd", "ooooo", 123)
 ### Time Format
 It is available to change time format.
 ```
-gologger.SetTimeFormat("2006/01/02")
+// glog = gologger.NewGologger(...
+glog.SetTimeFormat("2006/01/02")
 ```
 ```
 2018/02/21	INFO	hoge.sever...
@@ -93,7 +100,8 @@ gologger.SetTimeFormat("2006/01/02")
 ### Separator
 It is also available to change separator. Default separator is tab.
 ```
-gologger.SetSeparator("---")
+// glog = gologger.NewGologger(...
+glog.SetSeparator("---")
 ```
 ```
 2018-02-21T10:07:44.277+09:00---INFO---hoge.sever---...
@@ -102,7 +110,8 @@ gologger.SetSeparator("---")
 It is also available to change the order of log items except timestamp.
 ```
 ex.
-gologger.SetItemsList([]string{gologger.KeyMessage, gologger.KeyFuncAndFileName, gologger.KeyLogLevel, gologger.KeyPid})
+// glog = gologger.NewGologger(...
+glog.SetItemsList([]string{gologger.KeyMessage, gologger.KeyFuncAndFileName, gologger.KeyLogLevel, gologger.KeyPid})
 glog.Info("hogehoge")
 ```
 ```
