@@ -43,7 +43,8 @@ var KeyGoroutineId = "GoroutineId"
 var KeyUserName = "UserName"
 var KeyVersion  = "Version"
 var KeyMessage  = "Message"
-var KeyFuncAndFileName = "FuncAndFileName"
+var KeyFunc     = "Func"
+var KeyFileName = "FileName"
 
 var st Statement
 var logItems []string
@@ -70,7 +71,8 @@ func init() {
 	logItems = append(logItems, KeyUserName)
 	logItems = append(logItems, KeyVersion)
 	logItems = append(logItems, KeyMessage)
-	logItems = append(logItems, KeyFuncAndFileName)
+	logItems = append(logItems, KeyFunc)
+	logItems = append(logItems, KeyFileName)
 }
 
 func (writer LogWriter) Write(bytes []byte) (int, error) {
@@ -161,17 +163,22 @@ func getItem(logType string) (string) {
 		// set version
 		return getVersion()
 	}
-	if (logType == KeyFuncAndFileName) {
+	if (logType == KeyFunc) || (logType == KeyFileName){
 		// call file statement
 		programCounter, filePath, fileLineNum, _ := runtime.Caller(3)
 		filePathArry := strings.Split(fmt.Sprintf("%v",filePath), "/")
 	
-		// set called function name
-		fn := runtime.FuncForPC(programCounter)
-		fnNameArry := strings.Split(fn.Name(), ".")
-	
-		// set function and filename with line number
-		return fnNameArry[1]     + separator + "[" + filePathArry[len(filePathArry) - 1] + ":" + strconv.Itoa(fileLineNum) + "]"
+		if (logType == KeyFunc){
+			// set called function name
+			fn := runtime.FuncForPC(programCounter)
+			fnNameArry := strings.Split(fn.Name(), ".")
+
+			return fnNameArry[1]
+		}
+		if (logType == KeyFileName){
+			// set filename with line number
+			return "[" + filePathArry[len(filePathArry) - 1] + ":" + strconv.Itoa(fileLineNum) + "]"
+		}
 	}
 	return ""
 }
