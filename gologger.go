@@ -12,24 +12,19 @@ import (
 	"time"
 )
 
-var version = "1.0.0"
-var separator = "\t"
-var timeFormat = "2006-01-02T15:04:05.000-07:00"
-
-// base statement
 type Statement struct {
 	hostname  string
 	username  string
 }
 
-// log format
-type LogWriter struct {
-}
-
-// Gologger struct
 type Configuration struct {
 	Logfile    string
 	ShowDebug  bool
+	st         Statement
+	Version    string
+	Separator  string
+	TimeFormat string
+	LogItems   []string
 }
 
 type Gologger struct {
@@ -46,95 +41,69 @@ var KeyMessage  = "Message"
 var KeyFunc     = "Func"
 var KeyFileName = "FileName"
 
-var st Statement
-var logItems []string
 var f *(os.File)
 var err error
 
-func init() {
-	// set hostname, username ....
-	hostname, _ := os.Hostname()
-	st.hostname = hostname
-
-	user, _  := user.Current()
-	st.username = user.Username
-
-	// log settings
-	log.SetFlags(0)
-	log.SetOutput(new(LogWriter))
-
-	// log item position
-	logItems = append(logItems, KeyLogLevel)
-	logItems = append(logItems, KeyHostName)
-	logItems = append(logItems, KeyProcessId)
-	logItems = append(logItems, KeyGoroutineId)
-	logItems = append(logItems, KeyUserName)
-	logItems = append(logItems, KeyVersion)
-	logItems = append(logItems, KeyMessage)
-	logItems = append(logItems, KeyFunc)
-	logItems = append(logItems, KeyFileName)
-}
-
-func (writer LogWriter) Write(bytes []byte) (int, error) {
+func (g Gologger) Write(bytes []byte) (int, error) {
 	msg := string(bytes)
-	timestamp := time.Now().Format(timeFormat)
-	logMsg := timestamp + separator + msg
+	timestamp := time.Now().Format(g.Config.TimeFormat)
+	logMsg := timestamp + g.Config.Separator + msg
 
 	return f.Write(([]byte)(logMsg))
 }
 
-
-func getVersion() string {
-	return version
+func (g *Gologger)getHostname() string {
+	return g.Config.st.hostname
 }
 
-func SetVersion(vers string) {
-	version = vers
+func (g *Gologger)getUsername() string {
+	return g.Config.st.username
 }
 
-func SetSeparator(sep string) {
-	separator = sep
+func (g *Gologger)getVersion() string {
+	return g.Config.Version
 }
 
-func SetTimeFormat(tf string) {
-	timeFormat = tf
+func (g *Gologger)SetVersion(vers string) {
+	g.Config.Version = vers
 }
 
-func (x Statement) getHostname() string {
-	return x.hostname
+func (g *Gologger)SetSeparator(sep string) {
+	g.Config.Separator = sep
 }
 
-func (x Statement) getUsername() string {
-	return x.username
+func (g *Gologger)SetTimeFormat(tf string) {
+	g.Config.TimeFormat = tf
 }
 
-func SetItemsList(itemsList []string) {
-	logItems = itemsList
+func (g *Gologger)SetItemsList(itemsList []string) {
+	g.Config.LogItems = itemsList
 }
 
-func arrangeLog(logLevel, msg string) (logMsg string) {
+func (g *Gologger)arrangeLog(logLevel, msg string) (logMsg string) {
 
-	for _, item := range logItems {
+	for _, item := range g.Config.LogItems {
 		if (item == KeyLogLevel) {
 			// set log level
-			logMsg = logMsg + logLevel + separator
+			logMsg = logMsg + logLevel + g.Config.Separator
 			continue
 		}
 		if (item == KeyMessage) {
 			// set log message
-			logMsg = logMsg + msg      + separator
+			logMsg = logMsg + msg      + g.Config.Separator
 			continue
 		}
 		
-		logMsg = logMsg + getItem(item) + separator
+		logMsg = logMsg + g.getItem(item) + g.Config.Separator
 	}
 	return
 }
 
-func getItem(logType string) (string) {
+func (g *Gologger)getItem(logType string) (string) {
 	if (logType == KeyHostName) {
 		// set hostname
-		return st.getHostname()
+		//return st.getHostname()
+		return g.getHostname()
 	}
 	if (logType == KeyProcessId) {
 		// set process id
@@ -157,11 +126,12 @@ func getItem(logType string) (string) {
 	}
 	if (logType == KeyUserName) {
 		// set user name
-		return st.getUsername()
+		//return st.getUsername()
+		return g.getUsername()
 	}
 	if (logType == KeyVersion) {
 		// set version
-		return getVersion()
+		return g.getVersion()
 	}
 	if (logType == KeyFunc) || (logType == KeyFileName){
 		// call file statement
@@ -198,6 +168,45 @@ func NewGologger(conf Configuration) (*Gologger) {
 		}
 	}
 
+	// set hostname, username ....
+	hostname, _ := os.Hostname()
+	gl.Config.st.hostname = hostname
+
+	user, _  := user.Current()
+	gl.Config.st.username = user.Username
+
+	// version
+	if gl.Config.Version == "" {
+		gl.Config.Version = "1.0.0"
+	}
+
+	// separator
+	if gl.Config.Separator == "" {
+		gl.Config.Separator = "\t"
+	}
+
+	// time format
+	if gl.Config.TimeFormat == "" {
+		gl.Config.TimeFormat = "2006-01-02T15:04:05.000-07:00"
+	}
+
+	// set log item
+	if gl.Config.LogItems == nil {
+		gl.Config.LogItems = append(gl.Config.LogItems, KeyLogLevel)
+		gl.Config.LogItems = append(gl.Config.LogItems, KeyHostName)
+		gl.Config.LogItems = append(gl.Config.LogItems, KeyProcessId)
+		gl.Config.LogItems = append(gl.Config.LogItems, KeyGoroutineId)
+		gl.Config.LogItems = append(gl.Config.LogItems, KeyUserName)
+		gl.Config.LogItems = append(gl.Config.LogItems, KeyVersion)
+		gl.Config.LogItems = append(gl.Config.LogItems, KeyMessage)
+		gl.Config.LogItems = append(gl.Config.LogItems, KeyFunc)
+		gl.Config.LogItems = append(gl.Config.LogItems, KeyFileName)
+	}
+
+	// log settings
+	log.SetFlags(0)
+	log.SetOutput(gl)
+
 	return gl
 }
 
@@ -217,38 +226,38 @@ func (g *Gologger)Debug(v ...interface{}) {
         if ! g.Config.ShowDebug { return }
 
 	msg := fmt.Sprintf("%v", v)
-	logMsg := arrangeLog("DEBUG", msg[1:len(msg)-1])
+	logMsg := g.arrangeLog("DEBUG", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Info(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
-	logMsg := arrangeLog("INFO", msg[1:len(msg)-1])
+	logMsg := g.arrangeLog("INFO", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Warning(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
-	logMsg := arrangeLog("WARNING", msg[1:len(msg)-1])
+	logMsg := g.arrangeLog("WARNING", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Error(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
-	logMsg := arrangeLog("ERROR", msg[1:len(msg)-1])
+	logMsg := g.arrangeLog("ERROR", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 //===== the following funcs are not recommended
 func (g *Gologger)Fatal(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
-	logMsg := arrangeLog("FATAL", msg[1:len(msg)-1])
+	logMsg := g.arrangeLog("FATAL", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Panic(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
-	logMsg := arrangeLog("PANIC", msg[1:len(msg)-1])
+	logMsg := g.arrangeLog("PANIC", msg[1:len(msg)-1])
 	log.Println(logMsg)
 	panic("Call panic from Gologger")
 }
