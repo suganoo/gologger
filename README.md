@@ -66,8 +66,10 @@ Any type of messages can be logged.
 // Array
 items := []string{"aaaa", "bbbb"}
 glog.Info(items)
+
 // Int
 glog.Info(1000)
+
 // Struct
 type Hoge struct {
 	Id int
@@ -75,6 +77,7 @@ type Hoge struct {
 }
 hoge := Hoge{Id: 1222, Name:"aaaa"}
 glog.Info(hoge)
+
 // Mix
 glog.Info("ddddddddddd", "ooooo", 123)
 ```
@@ -111,7 +114,7 @@ It is also available to change the order of log items except timestamp.
 ```
 ex.
 // glog = gologger.NewGologger(...
-glog.SetItemsList([]string{gologger.KeyMessage, gologger.KeyFuncAndFileName, gologger.KeyLogLevel, gologger.KeyPid})
+glog.SetItemsList([]string{gologger.KeyMessage, gologger.KeyFunc, gologger.KeyFileName, gologger.KeyLogLevel, gologger.KeyPid})
 glog.Info("hogehoge")
 ```
 ```
