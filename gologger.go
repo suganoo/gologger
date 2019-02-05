@@ -12,6 +12,19 @@ import (
 	"time"
 )
 
+type KeyName int
+const (
+	KeyLogLevel KeyName = iota + 1
+	KeyHostName
+	KeyProcessId
+	KeyGoroutineId
+	KeyUserName
+	KeyVersion
+	KeyMessage
+	KeyFunc
+	KeyFileName
+)
+
 type Statement struct {
 	hostname  string
 	username  string
@@ -24,22 +37,13 @@ type Configuration struct {
 	Version    string
 	Separator  string
 	TimeFormat string
-	LogItems   []string
+	//LogItems   []string
+	LogItems   []KeyName
 }
 
 type Gologger struct {
 	Config     Configuration
 }
-
-var KeyLogLevel = "LogLevel"
-var KeyHostName = "HostName"
-var KeyProcessId   = "ProcessId"
-var KeyGoroutineId = "GoroutineId"
-var KeyUserName = "UserName"
-var KeyVersion  = "Version"
-var KeyMessage  = "Message"
-var KeyFunc     = "Func"
-var KeyFileName = "FileName"
 
 var f *(os.File)
 var err error
@@ -76,7 +80,7 @@ func (g *Gologger)SetTimeFormat(tf string) {
 	g.Config.TimeFormat = tf
 }
 
-func (g *Gologger)SetItemsList(itemsList []string) {
+func (g *Gologger)SetItemsList(itemsList []KeyName) {
 	g.Config.LogItems = itemsList
 }
 
@@ -99,7 +103,7 @@ func (g *Gologger)arrangeLog(logLevel, msg string) (logMsg string) {
 	return
 }
 
-func (g *Gologger)getItem(logType string) (string) {
+func (g *Gologger)getItem(logType KeyName) (string) {
 	if (logType == KeyHostName) {
 		// set hostname
 		//return st.getHostname()
