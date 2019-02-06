@@ -37,7 +37,6 @@ type Configuration struct {
 	Version    string
 	Separator  string
 	TimeFormat string
-	//LogItems   []string
 	LogItems   []KeyName
 }
 
@@ -87,34 +86,36 @@ func (g *Gologger)SetItemsList(itemsList []KeyName) {
 func (g *Gologger)arrangeLog(logLevel, msg string) (logMsg string) {
 
 	for _, item := range g.Config.LogItems {
-		if (item == KeyLogLevel) {
+		switch item {
+		case KeyLogLevel:
 			// set log level
 			logMsg = logMsg + logLevel + g.Config.Separator
-			continue
-		}
-		if (item == KeyMessage) {
+		
+		case KeyMessage:
 			// set log message
 			logMsg = logMsg + msg      + g.Config.Separator
-			continue
-		}
 		
-		logMsg = logMsg + g.getItem(item) + g.Config.Separator
+		default:
+			logMsg = logMsg + g.getItem(item) + g.Config.Separator
+		}
 	}
 	return
 }
 
 func (g *Gologger)getItem(logType KeyName) (string) {
-	if (logType == KeyHostName) {
+
+	switch logType {
+	case KeyHostName:
 		// set hostname
 		//return st.getHostname()
 		return g.getHostname()
-	}
-	if (logType == KeyProcessId) {
+	
+	case KeyProcessId:
 		// set process id
 		pid := os.Getpid()
 		return strconv.Itoa(pid)
-	}
-	if (logType == KeyGoroutineId) {
+	
+	case KeyGoroutineId:
 		// get and set goroutine id
 		rsb := make([]byte, 64)
 		// the content of runtime stack is like this.
@@ -127,17 +128,16 @@ func (g *Gologger)getItem(logType KeyName) (string) {
 		// "goroutine 1 [running]:" --> "1"
 		return "GrtnID:" + strings.Split(string(rsb)," ")[1]
 
-	}
-	if (logType == KeyUserName) {
+	case KeyUserName:
 		// set user name
 		//return st.getUsername()
 		return g.getUsername()
-	}
-	if (logType == KeyVersion) {
+	
+	case KeyVersion:
 		// set version
 		return g.getVersion()
-	}
-	if (logType == KeyFunc) || (logType == KeyFileName){
+	
+	case KeyFunc, KeyFileName:
 		// call file statement
 		programCounter, filePath, fileLineNum, _ := runtime.Caller(3)
 		filePathArry := strings.Split(fmt.Sprintf("%v",filePath), "/")
@@ -153,6 +153,9 @@ func (g *Gologger)getItem(logType KeyName) (string) {
 			// set filename with line number
 			return "[" + filePathArry[len(filePathArry) - 1] + ":" + strconv.Itoa(fileLineNum) + "]"
 		}
+	
+	default:
+		return ""
 	}
 	return ""
 }
