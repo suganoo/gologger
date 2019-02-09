@@ -2,6 +2,7 @@ package gologger
 
 import (
 	"errors"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,9 +13,9 @@ import (
 	"time"
 )
 
-type KeyName int
+type KeyId int
 const (
-	KeyLogLevel KeyName = iota + 1
+	KeyLogLevel KeyId = iota + 1
 	KeyHostName
 	KeyProcessId
 	KeyGoroutineId
@@ -25,6 +26,18 @@ const (
 	KeyFileName
 )
 
+// these are json key
+const (
+	KeyNameLogLevel    = "loglevel"
+	KeyNameHostName    = "hostname"
+	KeyNameProcessId   = "processid"
+	KeyNameGoroutineId = "goroutineid"
+	KeyNameUserName    = "username"
+	KeyNameVersion     = "version"
+	KeyNameMessage     = "message"
+	KeyNameFunc        = "func"
+	KeyNameFileName    = "filename"
+)
 type Statement struct {
 	hostname  string
 	username  string
@@ -37,11 +50,12 @@ type Configuration struct {
 	Version    string
 	Separator  string
 	TimeFormat string
-	LogItems   []KeyName
+	LogItems   []KeyId
 }
 
 type Gologger struct {
 	Config     Configuration
+	FormatterInterface
 }
 
 var f *(os.File)
@@ -79,11 +93,21 @@ func (g *Gologger)SetTimeFormat(tf string) {
 	g.Config.TimeFormat = tf
 }
 
-func (g *Gologger)SetItemsList(itemsList []KeyName) {
+func (g *Gologger)SetItemsList(itemsList []KeyId) {
 	g.Config.LogItems = itemsList
 }
 
-func (g *Gologger)arrangeLog(logLevel, msg string) (logMsg string) {
+// Log Format
+type FormatterInterface interface {
+	marshall(*Gologger, string, string) string
+}
+
+type MarshallFunc func(*Gologger, string, string) string
+func (m MarshallFunc) marshall(g *Gologger, logLevel string, msg string) (logMsg string){
+	return m(g, logLevel, msg)
+}
+
+func defaultFormat(g *Gologger, logLevel string, msg string) (logMsg string){
 
 	for _, item := range g.Config.LogItems {
 		switch item {
@@ -102,7 +126,28 @@ func (g *Gologger)arrangeLog(logLevel, msg string) (logMsg string) {
 	return
 }
 
-func (g *Gologger)getItem(logType KeyName) (string) {
+func jsonFormat(g *Gologger, logLevel string, msg string) (logMsg string){
+
+	logMap := map[string]string
+	for _, item := range g.Config.LogItems {
+		switch item {
+		case KeyLogLevel:
+			// set log level
+			logMap[KeyNameLogLevel] = logLevel
+		
+		case KeyMessage:
+			// set log message
+			logMap[KeyLogLevel] = logLevel
+			logMsg = logMsg + msg      + g.Config.Separator
+		
+		default:
+			logMsg = logMsg + g.getItem(item) + g.Config.Separator
+		}
+	}
+	return
+}
+
+func (g *Gologger)getItem(logType KeyId) (string) {
 
 	switch logType {
 	case KeyHostName:
@@ -175,6 +220,9 @@ func NewGologger(conf Configuration) (*Gologger) {
 		}
 	}
 
+	// set Formatter
+	gl.FormatterInterface = MarshallFunc(defaultFormat)
+
 	// set hostname, username ....
 	hostname, _ := os.Hostname()
 	gl.Config.st.hostname = hostname
@@ -233,38 +281,38 @@ func (g *Gologger)Debug(v ...interface{}) {
         if ! g.Config.ShowDebug { return }
 
 	msg := fmt.Sprintf("%v", v)
-	logMsg := g.arrangeLog("DEBUG", msg[1:len(msg)-1])
+	logMsg := g.marshall(g, "DEBUG", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Info(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
-	logMsg := g.arrangeLog("INFO", msg[1:len(msg)-1])
+	logMsg := g.marshall(g, "INFO", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Warning(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
-	logMsg := g.arrangeLog("WARNING", msg[1:len(msg)-1])
+	logMsg := g.marshall(g, "WARNING", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Error(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
-	logMsg := g.arrangeLog("ERROR", msg[1:len(msg)-1])
+	logMsg := g.marshall(g, "ERROR", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 //===== the following funcs are not recommended
 func (g *Gologger)Fatal(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
-	logMsg := g.arrangeLog("FATAL", msg[1:len(msg)-1])
+	logMsg := g.marshall(g, "FATAL", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 func (g *Gologger)Panic(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
-	logMsg := g.arrangeLog("PANIC", msg[1:len(msg)-1])
+	logMsg := g.marshall(g, "PANIC", msg[1:len(msg)-1])
 	log.Println(logMsg)
 	panic("Call panic from Gologger")
 }
