@@ -15,7 +15,8 @@ import (
 
 type KeyId int
 const (
-	KeyLogLevel KeyId = iota + 1
+	KeyTimestamp KeyId = iota
+	KeyLogLevel
 	KeyHostName
 	KeyProcessId
 	KeyGoroutineId
@@ -26,18 +27,27 @@ const (
 	KeyFileName
 )
 
-// these are json key
+// these are keys for json format.
+var knm map[KeyId]string = map[KeyId]string{}
 const (
+	KeyNameTimestamp   = "timestamp"
 	KeyNameLogLevel    = "loglevel"
 	KeyNameHostName    = "hostname"
-	KeyNameProcessId   = "processid"
-	KeyNameGoroutineId = "goroutineid"
+	KeyNameProcessId   = "pid"
+	KeyNameGoroutineId = "gid"
 	KeyNameUserName    = "username"
 	KeyNameVersion     = "version"
-	KeyNameMessage     = "message"
+	KeyNameMessage     = "msg"
 	KeyNameFunc        = "func"
 	KeyNameFileName    = "filename"
 )
+
+type OutputFmtType int
+const (
+	FmtDefault   OutputFmtType = iota
+	FmtJSON
+)
+
 type Statement struct {
 	hostname  string
 	username  string
@@ -61,12 +71,23 @@ type Gologger struct {
 var f *(os.File)
 var err error
 
+func init() {
+	// these map are for json format.
+	knm[KeyTimestamp]   = KeyNameTimestamp
+	knm[KeyLogLevel]    = KeyNameLogLevel
+	knm[KeyHostName]    = KeyNameHostName
+	knm[KeyProcessId]   = KeyNameProcessId
+	knm[KeyGoroutineId] = KeyNameGoroutineId
+	knm[KeyUserName]    = KeyNameUserName
+	knm[KeyVersion]     = KeyNameVersion
+	knm[KeyMessage]     = KeyNameMessage
+	knm[KeyFunc]        = KeyNameFunc
+	knm[KeyFileName]    = KeyNameFileName
+}
+
 func (g Gologger) Write(bytes []byte) (int, error) {
 	msg := string(bytes)
-	timestamp := time.Now().Format(g.Config.TimeFormat)
-	logMsg := timestamp + g.Config.Separator + msg
-
-	return f.Write(([]byte)(logMsg))
+	return f.Write(([]byte)(msg))
 }
 
 func (g *Gologger)getHostname() string {
@@ -95,6 +116,17 @@ func (g *Gologger)SetTimeFormat(tf string) {
 
 func (g *Gologger)SetItemsList(itemsList []KeyId) {
 	g.Config.LogItems = itemsList
+}
+
+func (g *Gologger)SetOutputFormat(typeId OutputFmtType) {
+	switch typeId {
+	case FmtDefault:
+		g.FormatterInterface = MarshallFunc(defaultFormat)
+	case FmtJSON:
+		g.FormatterInterface = MarshallFunc(jsonFormat)
+	default:
+		g.FormatterInterface = MarshallFunc(defaultFormat)
+	}
 }
 
 // Log Format
@@ -128,28 +160,34 @@ func defaultFormat(g *Gologger, logLevel string, msg string) (logMsg string){
 
 func jsonFormat(g *Gologger, logLevel string, msg string) (logMsg string){
 
-	logMap := map[string]string
+	logMap := map[string]string{}
 	for _, item := range g.Config.LogItems {
 		switch item {
 		case KeyLogLevel:
 			// set log level
-			logMap[KeyNameLogLevel] = logLevel
+			logMap[knm[item]] = logLevel
 		
 		case KeyMessage:
 			// set log message
-			logMap[KeyLogLevel] = logLevel
-			logMsg = logMsg + msg      + g.Config.Separator
+			logMap[knm[item]] = msg
 		
 		default:
-			logMsg = logMsg + g.getItem(item) + g.Config.Separator
+			logMap[knm[item]] = g.getItem(item)
 		}
 	}
+	str, _ := json.Marshal(logMap)
+	logMsg = string(str)
 	return
 }
 
 func (g *Gologger)getItem(logType KeyId) (string) {
 
 	switch logType {
+	case KeyTimestamp:
+		// set timestamp
+		timestamp := time.Now().Format(g.Config.TimeFormat)
+		return timestamp
+
 	case KeyHostName:
 		// set hostname
 		//return st.getHostname()
@@ -184,7 +222,7 @@ func (g *Gologger)getItem(logType KeyId) (string) {
 	
 	case KeyFunc, KeyFileName:
 		// call file statement
-		programCounter, filePath, fileLineNum, _ := runtime.Caller(3)
+		programCounter, filePath, fileLineNum, _ := runtime.Caller(4)
 		filePathArry := strings.Split(fmt.Sprintf("%v",filePath), "/")
 	
 		if (logType == KeyFunc){
@@ -247,6 +285,7 @@ func NewGologger(conf Configuration) (*Gologger) {
 
 	// set log item
 	if gl.Config.LogItems == nil {
+		gl.Config.LogItems = append(gl.Config.LogItems, KeyTimestamp)
 		gl.Config.LogItems = append(gl.Config.LogItems, KeyLogLevel)
 		gl.Config.LogItems = append(gl.Config.LogItems, KeyHostName)
 		gl.Config.LogItems = append(gl.Config.LogItems, KeyProcessId)
