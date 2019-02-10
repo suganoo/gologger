@@ -78,7 +78,7 @@ type Hoge struct {
 hoge := Hoge{Id: 1222, Name:"aaaa"}
 glog.Info(hoge)
 
-// Mix
+// Mixed
 glog.Info("ddddddddddd", "ooooo", 123)
 ```
 ```
@@ -88,13 +88,12 @@ glog.Info("ddddddddddd", "ooooo", 123)
 2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	GrtnID:1	fuga-user	1.0.0	1000	main	[main.go:23]
 // Struct
 2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	GrtnID:1	fuga-user	1.0.0	{1222 aaaa}	main	[main.go:30]
-// Mix
+// Mixed
 2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	GrtnID:1	fuga-user	1.0.0	ddddddddddd ooooo 123	main	[main.go:31]
 ```
 ### Time Format
 It is available to change time format.
 ```
-// glog = gologger.NewGologger(...
 glog.SetTimeFormat("2006/01/02")
 ```
 ```
@@ -103,7 +102,6 @@ glog.SetTimeFormat("2006/01/02")
 ### Separator
 It is also available to change separator. Default separator is tab.
 ```
-// glog = gologger.NewGologger(...
 glog.SetSeparator("---")
 ```
 ```
@@ -113,10 +111,18 @@ glog.SetSeparator("---")
 It is also available to change the order of log items except timestamp.
 ```
 ex.
-// glog = gologger.NewGologger(...
 glog.SetItemsList([]string{gologger.KeyMessage, gologger.KeyFunc, gologger.KeyFileName, gologger.KeyLogLevel, gologger.KeyPid})
 glog.Info("hogehoge")
 ```
 ```
 2019-01-07T12:21:33.893+09:00	hogehoge	main	[main.go:11]	INFO	10780
+```
+### JSON format
+change the format to JSON.
+```
+glog.SetOutputFormat(gologger.FmtJSON)
+```
+```
+ex.
+{"filename":"[sample.go:18]","func":"main","gid":"GrtnID:1","hostname":"hoge.server","loglevel":"INFO","msg":"this is info","pid":"4124","timestamp":"2019-02-10T23:54:07.854+09:00","username":"fuga-user","version":"1.0.0"}
 ```
