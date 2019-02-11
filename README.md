@@ -111,11 +111,11 @@ glog.SetSeparator("---")
 It is also available to change the order of log items except timestamp.
 ```
 ex.
-glog.SetItemsList([]string{gologger.KeyMessage, gologger.KeyFunc, gologger.KeyFileName, gologger.KeyLogLevel, gologger.KeyPid})
+glog.SetItemsList([]gologger.KeyId{gologger.KeyMessage, gologger.KeyFunc, gologger.KeyFileName, gologger.KeyLogLevel, gologger.KeyProcessId})
 glog.Info("hogehoge")
 ```
 ```
-2019-01-07T12:21:33.893+09:00	hogehoge	main	[main.go:11]	INFO	10780
+hogehoge	main	[main.go:11]	INFO	10780
 ```
 ### JSON format
 change the format to JSON.
