@@ -108,7 +108,7 @@ glog.SetSeparator("---")
 2018-02-21T10:07:44.277+09:00---INFO---hoge.sever---...
 ```
 ### Items order
-It is also available to change the order of log items except timestamp.
+It is also available to change the order of log items.
 ```
 ex.
 glog.SetItemsList([]gologger.KeyId{gologger.KeyMessage, gologger.KeyFunc, gologger.KeyFileName, gologger.KeyLogLevel, gologger.KeyProcessId})
