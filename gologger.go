@@ -1,3 +1,8 @@
+/*
+gologger is Golang logger.
+gologger shows multiple types of attributes in log.
+See https://github.com/suganoo/gologger
+*/
 package gologger
 
 import (
@@ -87,6 +92,7 @@ func init() {
 	knm[KeyFileName]    = KeyNameFileName
 }
 
+// Write logs as output.
 func (g Gologger) Write(bytes []byte) (int, error) {
 	lock.Lock()
 	defer lock.Unlock()
@@ -106,22 +112,27 @@ func (g *Gologger)getVersion() string {
 	return g.Config.Version
 }
 
+// SetVersion changes the version.
 func (g *Gologger)SetVersion(vers string) {
 	g.Config.Version = vers
 }
 
+// SetSeparator changes the separator of log.
 func (g *Gologger)SetSeparator(sep string) {
 	g.Config.Separator = sep
 }
 
+// SetTimeFormat defines the time format.
 func (g *Gologger)SetTimeFormat(tf string) {
 	g.Config.TimeFormat = tf
 }
 
+// SetItemsList defines what items should be shown in log.
 func (g *Gologger)SetItemsList(itemsList []KeyId) {
 	g.Config.LogItems = itemsList
 }
 
+// SetOutputFormat defines log output format.
 func (g *Gologger)SetOutputFormat(typeId OutputFmtType) {
 	switch typeId {
 	case FmtDefault:
@@ -251,6 +262,7 @@ func (g *Gologger)getItem(logType KeyId) (string) {
 	return ""
 }
 
+// NewGologger returns Gologger object.
 func NewGologger(conf Configuration) (*Gologger) {
 	gl := &Gologger{
 		Config: conf,
@@ -312,18 +324,22 @@ func NewGologger(conf Configuration) (*Gologger) {
 	return gl
 }
 
+// MuteDebug mutes debug log.
 func (g *Gologger)MuteDebug() {
 	g.Config.ShowDebug = false
 }
 
+// UnmuteDebug unmutes debug log.
 func (g *Gologger)UnmuteDebug() {
 	g.Config.ShowDebug = true
 }
 
+// CloseFile close the output file.
 func (g *Gologger)CloseFile() {
 	f.Close()
 }
 
+// Debug writes log as Debug level.
 func (g *Gologger)Debug(v ...interface{}) {
         if ! g.Config.ShowDebug { return }
 
@@ -332,35 +348,24 @@ func (g *Gologger)Debug(v ...interface{}) {
 	log.Println(logMsg)
 }
 
+// Info writes log as Info level.
 func (g *Gologger)Info(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
 	logMsg := g.marshall(g, "INFO", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
+// Warning writes log as Warning level.
 func (g *Gologger)Warning(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
 	logMsg := g.marshall(g, "WARNING", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
+// Error writes log as Error level.
 func (g *Gologger)Error(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
 	logMsg := g.marshall(g, "ERROR", msg[1:len(msg)-1])
 	log.Println(logMsg)
-}
-
-//===== the following funcs are not recommended
-func (g *Gologger)Fatal(v ...interface{}) {
-	msg := fmt.Sprintf("%v", v)
-	logMsg := g.marshall(g, "FATAL", msg[1:len(msg)-1])
-	log.Println(logMsg)
-}
-
-func (g *Gologger)Panic(v ...interface{}) {
-	msg := fmt.Sprintf("%v", v)
-	logMsg := g.marshall(g, "PANIC", msg[1:len(msg)-1])
-	log.Println(logMsg)
-	panic("Call panic from Gologger")
 }
 
