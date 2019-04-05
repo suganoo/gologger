@@ -12,47 +12,49 @@ import (
 )
 
 var testlog = "gologger_test.log"
+var glog *Gologger
 
 func init() {
 	os.Remove(testlog)
+	glog = NewGologger(Configuration{Logfile : testlog})
 }
 
 func TestGetVersion(t *testing.T) {
-	t.Log(getVersion())
-	if getVersion() != version {
+	t.Log(glog.getVersion())
+	//if strings.Split(glog.getVersion(), "\t")[0] != "1.0.0" {
+	if glog.getVersion() != "1.0.0" {
 		t.Error("Error get version.")
 	}
 }
 
 func TestSetVersion(t *testing.T) {
 	nextV := "3.2.1"
-	SetVersion(nextV)
-	t.Log(getVersion())
-	if getVersion() != version {
+	glog.SetVersion(nextV)
+	t.Log(glog.getVersion())
+	if glog.getVersion() != nextV {
 		t.Error("Error set version.")
 	}
 
-	SetVersion("1.0.0")
+	glog.SetVersion("1.0.0")
 }
 
 func TestSeparator(t *testing.T) {
-	if separator != "\t" {
+	if glog.Config.Separator != "\t" {
 		t.Error("Error default separator.")
 	}
 }
 
 func TestSetSeparator(t *testing.T) {
 	newSp := "---"
-	SetSeparator(newSp)
-	if separator != newSp {
+	glog.SetSeparator(newSp)
+	if glog.Config.Separator != newSp {
 		t.Error("Error set separator.")
 	}
 
-	SetSeparator("\t")
+	glog.SetSeparator("\t")
 }
 
 func TestMuteDebug(t *testing.T) {
-	glog := NewGologger(Configuration{})
 	glog.MuteDebug()
 	if glog.Config.ShowDebug != false {
 		t.Error("Error mute debug.")
@@ -60,7 +62,6 @@ func TestMuteDebug(t *testing.T) {
 }
 
 func TestUnMuteDebug(t *testing.T) {
-	glog := NewGologger(Configuration{})
 	glog.UnmuteDebug()
 	if glog.Config.ShowDebug != true {
 		t.Error("Error unmute debug.")
@@ -68,10 +69,12 @@ func TestUnMuteDebug(t *testing.T) {
 }
 
 func TestTimeFormat(t *testing.T) {
+	glog.CloseFile()
 	os.Remove(testlog)
-	glog := NewGologger(Configuration{Logfile: testlog})
-	SetItemsList([]string{})
-	SetTimeFormat("2006/01/02")
+
+	glog = NewGologger(Configuration{Logfile: testlog})
+	glog.SetItemsList([]KeyId{KeyTimestamp})
+	glog.SetTimeFormat("2006/01/02")
 
 	r := regexp.MustCompile(`[0-9]{4}/[0-9]{2}/[0-9]{2}`)
 
@@ -79,22 +82,22 @@ func TestTimeFormat(t *testing.T) {
 
 	data, _ := ioutil.ReadFile(testlog)
 	t.Log(string(data))
-	dl := strings.Split(string(data), "\t")
 
-	if ! r.MatchString(dl[0]) {
+	if ! r.MatchString(string(data)) {
 		t.Error("Error time format in log.")
 	}
 	
 	glog.CloseFile()
 	os.Remove(testlog)
-	SetTimeFormat("2006-01-02T15:04:05.000-07:00")
+	glog.SetTimeFormat("2006-01-02T15:04:05.000-07:00")
 }
 
 func TestLogLevel(t *testing.T) {
 	os.Remove(testlog)
+
 	glog := NewGologger(Configuration{Logfile: testlog})
 	glog.UnmuteDebug()
-	SetItemsList([]string{KeyLogLevel})
+	glog.SetItemsList([]KeyId{KeyLogLevel})
 
 	glog.Debug()
 	glog.Info()
@@ -116,19 +119,19 @@ func TestLogLevel(t *testing.T) {
 		dl := strings.Split(data, "\t")
 		switch i {
 		case 0:
-			if dl[1] != "DEBUG" {
+			if dl[0] != "DEBUG" {
 				t.Error("Error log level DEBUG in log.")
 			}
 		case 1:
-			if dl[1] != "INFO" {
+			if dl[0] != "INFO" {
 				t.Error("Error log level INFO in log.")
 			}
 		case 2:
-			if dl[1] != "WARNING" {
+			if dl[0] != "WARNING" {
 				t.Error("Error log level WARNING in log.")
 			}
 		case 3:
-			if dl[1] != "ERROR" {
+			if dl[0] != "ERROR" {
 				t.Error("Error log level ERROR in log.")
 			}
 		}
@@ -140,15 +143,16 @@ func TestLogLevel(t *testing.T) {
 
 func TestVersion(t *testing.T) {
 	os.Remove(testlog)
+
 	glog := NewGologger(Configuration{Logfile: testlog})
-	SetItemsList([]string{KeyVersion})
+	glog.SetItemsList([]KeyId{KeyVersion})
 
 	glog.Info()
 
 	data, _ := ioutil.ReadFile(testlog)
 	t.Log(string(data))
 	dl := strings.Split(string(data), "\t")
-	if dl[1] != "1.0.0" {
+	if dl[0] != "1.0.0" {
 		t.Error("Error version in log.")
 	}
 	
@@ -159,16 +163,16 @@ func TestVersion(t *testing.T) {
 func TestHostname(t *testing.T) {
 	os.Remove(testlog)
 	glog := NewGologger(Configuration{Logfile: testlog})
-	SetItemsList([]string{KeyHostName})
+	glog.SetItemsList([]KeyId{KeyHostName})
 	hostname := "hogeserver"
-	st.hostname = hostname
+	glog.Config.st.hostname = hostname
 
 	glog.Info()
 
 	data, _ := ioutil.ReadFile(testlog)
 	t.Log(string(data))
 	dl := strings.Split(string(data), "\t")
-	if dl[1] != hostname {
+	if dl[0] != hostname {
 		t.Error("Error hostname in log.")
 	}
 	
@@ -179,16 +183,16 @@ func TestHostname(t *testing.T) {
 func TestUsername(t *testing.T) {
 	os.Remove(testlog)
 	glog := NewGologger(Configuration{Logfile: testlog})
-	SetItemsList([]string{KeyUserName})
+	glog.SetItemsList([]KeyId{KeyUserName})
 	username := "suganoo"
-	st.username = username
+	glog.Config.st.username = username
 
 	glog.Info()
 
 	data, _ := ioutil.ReadFile(testlog)
 	t.Log(string(data))
 	dl := strings.Split(string(data), "\t")
-	if dl[1] != username {
+	if dl[0] != username {
 		t.Error("Error username in log.")
 	}
 	
@@ -199,7 +203,7 @@ func TestUsername(t *testing.T) {
 func TestMessage(t *testing.T) {
 	os.Remove(testlog)
 	glog := NewGologger(Configuration{Logfile: testlog})
-	SetItemsList([]string{KeyMessage})
+	glog.SetItemsList([]KeyId{KeyMessage})
 	msg := "hogehoge"
 	num := 1234
 	type HogeStruct struct {
@@ -230,23 +234,23 @@ func TestMessage(t *testing.T) {
 		dl := strings.Split(data, "\t")
 		switch i {
 		case 0:
-			if dl[1] != msg {
+			if dl[0] != msg {
 				t.Error("Error string in log.")
 			}
 		case 1:
-			if dl[1] != strconv.Itoa(num) {
+			if dl[0] != strconv.Itoa(num) {
 				t.Error("Error int in log.")
 			}
 		case 2:
-			if dl[1] != fmt.Sprintf("%v", hs) {
+			if dl[0] != fmt.Sprintf("%v", hs) {
 				t.Error("Error struct in log.")
 			}
 		case 3:
-			if dl[1] != (msg + " " + strconv.Itoa(num)) {
+			if dl[0] != (msg + " " + strconv.Itoa(num)) {
 				t.Error("Error multi in log.")
 			}
 		case 4:
-			if dl[1] != fmt.Sprintf("%v", list) {
+			if dl[0] != fmt.Sprintf("%v", list) {
 				t.Error("Error list in log.")
 			}
 		}
@@ -260,7 +264,7 @@ func TestMessage(t *testing.T) {
 func TestProcessId(t *testing.T) {
 	os.Remove(testlog)
 	glog := NewGologger(Configuration{Logfile: testlog})
-	SetItemsList([]string{KeyProcessId})
+	glog.SetItemsList([]KeyId{KeyProcessId})
 
 	r := regexp.MustCompile(`\d`)
 
@@ -270,7 +274,7 @@ func TestProcessId(t *testing.T) {
 	t.Log(string(data))
 	dl := strings.Split(string(data), "\t")
 
-	if ! r.MatchString(dl[1]) {
+	if ! r.MatchString(dl[0]) {
 		t.Error("Error process id in log.")
 	}
 	
@@ -281,9 +285,9 @@ func TestProcessId(t *testing.T) {
 func TestGoroutineId(t *testing.T) {
 	os.Remove(testlog)
 	glog := NewGologger(Configuration{Logfile: testlog})
-	SetItemsList([]string{KeyGoroutineId})
+	glog.SetItemsList([]KeyId{KeyGoroutineId})
 
-	r := regexp.MustCompile(`GrtnID:\d`)
+	r := regexp.MustCompile(`gid:\d`)
 
 	glog.Info()
 
@@ -291,7 +295,7 @@ func TestGoroutineId(t *testing.T) {
 	t.Log(string(data))
 	dl := strings.Split(string(data), "\t")
 
-	if ! r.MatchString(dl[1]) {
+	if ! r.MatchString(dl[0]) {
 		t.Error("Error goroutine id in log.")
 	}
 	
@@ -299,10 +303,10 @@ func TestGoroutineId(t *testing.T) {
 	os.Remove(testlog)
 }
 
-func TestFuncandFileName(t *testing.T) {
+func TestFileName(t *testing.T) {
 	os.Remove(testlog)
 	glog := NewGologger(Configuration{Logfile: testlog})
-	SetItemsList([]string{KeyFuncAndFileName})
+	glog.SetItemsList([]KeyId{KeyFileName})
 
 	r := regexp.MustCompile(`[gologger_test.go:\d]`)
 
@@ -310,13 +314,26 @@ func TestFuncandFileName(t *testing.T) {
 
 	data, _ := ioutil.ReadFile(testlog)
 	t.Log(string(data))
-	dl := strings.Split(string(data), "\t")
-
-	if dl[1] != "TestFuncandFileName" {
-		t.Error("Error function name in log.")
-	}
-	if ! r.MatchString(dl[2]) {
+	if ! r.MatchString(string(data)) {
 		t.Error("Error filename in log.")
+	}
+	
+	glog.CloseFile()
+	os.Remove(testlog)
+}
+
+func TestFunc(t *testing.T) {
+	os.Remove(testlog)
+	glog := NewGologger(Configuration{Logfile: testlog})
+	glog.SetItemsList([]KeyId{KeyFunc})
+
+	glog.Info()
+
+	data, _ := ioutil.ReadFile(testlog)
+	t.Log(string(data))
+
+	if strings.Split(string(data), "\t")[0] != "TestFunc" {
+		t.Error("Error function name in log.")
 	}
 	
 	glog.CloseFile()
