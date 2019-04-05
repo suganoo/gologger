@@ -45,13 +45,13 @@ go run gologgerSample.go
 ## Output
 testlog.log
 ```testlog.log
-2018-02-21T10:07:44.277+09:00	INFO	hoge.sever	3892	GrtnID:1	fuga-user	1.0.0	this is info	main	[gologgerSample.go:18]
-2018-02-21T10:07:44.277+09:00	INFO	hoge.sever	3892	GrtnID:1	fuga-user	1.0.0	msg : hogehoge	main	[gologgerSample.go:19]
-2018-02-21T10:07:44.277+09:00	WARNING	hoge.sever	3892	GrtnID:1	fuga-user	1.0.0	this is warning	main	[gologgerSample.go:20]
-2018-02-21T10:07:44.277+09:00	ERROR	hoge.sever	3892	GrtnID:1	fuga-user	1.0.0	this is Error	main	[gologgerSample.go:21]
-2018-02-21T10:07:44.277+09:00	DEBUG	hoge.sever	3892	GrtnID:1	fuga-user	1.0.0	this is debug hogeFunc	hogeFunc	[gologgerSample.go:8]
-2018-02-21T10:07:44.277+09:00	INFO	hoge.sever	3892	GrtnID:1	fuga-user	1.0.0	call hogeFunc	hogeFunc	[gologgerSample.go:9]
-2018-02-21T10:07:44.277+09:00	DEBUG	hoge.sever	3892	GrtnID:1	fuga-user	1.0.0	this is debug xxx	main	[gologgerSample.go:26]
+2018-02-21T10:07:44.277+09:00	INFO	hoge.sever	3892	gid:1	fuga-user	1.0.0	this is info	main	[gologgerSample.go:18]
+2018-02-21T10:07:44.277+09:00	INFO	hoge.sever	3892	gid:1	fuga-user	1.0.0	msg : hogehoge	main	[gologgerSample.go:19]
+2018-02-21T10:07:44.277+09:00	WARNING	hoge.sever	3892	gid:1	fuga-user	1.0.0	this is warning	main	[gologgerSample.go:20]
+2018-02-21T10:07:44.277+09:00	ERROR	hoge.sever	3892	gid:1	fuga-user	1.0.0	this is Error	main	[gologgerSample.go:21]
+2018-02-21T10:07:44.277+09:00	DEBUG	hoge.sever	3892	gid:1	fuga-user	1.0.0	this is debug hogeFunc	hogeFunc	[gologgerSample.go:8]
+2018-02-21T10:07:44.277+09:00	INFO	hoge.sever	3892	gid:1	fuga-user	1.0.0	call hogeFunc	hogeFunc	[gologgerSample.go:9]
+2018-02-21T10:07:44.277+09:00	DEBUG	hoge.sever	3892	gid:1	fuga-user	1.0.0	this is debug xxx	main	[gologgerSample.go:26]
 ```
 ### Stdout
 if set empty in "Logfile", it shows log in os.Stdout.
@@ -83,13 +83,13 @@ glog.Info("ddddddddddd", "ooooo", 123)
 ```
 ```
 // Array
-2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	GrtnID:1	fuga-user	1.0.0	[aaaa bbbb]	main	[main.go:24]
+2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	gid:1	fuga-user	1.0.0	[aaaa bbbb]	main	[main.go:24]
 // Int
-2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	GrtnID:1	fuga-user	1.0.0	1000	main	[main.go:23]
+2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	gid:1	fuga-user	1.0.0	1000	main	[main.go:23]
 // Struct
-2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	GrtnID:1	fuga-user	1.0.0	{1222 aaaa}	main	[main.go:30]
+2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	gid:1	fuga-user	1.0.0	{1222 aaaa}	main	[main.go:30]
 // Mixed
-2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	GrtnID:1	fuga-user	1.0.0	ddddddddddd ooooo 123	main	[main.go:31]
+2019-01-07T12:17:01.248+09:00	INFO	hoge.sever	18184	gid:1	fuga-user	1.0.0	ddddddddddd ooooo 123	main	[main.go:31]
 ```
 ### Time Format
 It is available to change time format.
@@ -124,5 +124,5 @@ glog.SetOutputFormat(gologger.FmtJSON)
 ```
 ```
 ex.
-{"filename":"[sample.go:18]","func":"main","gid":"GrtnID:1","hostname":"hoge.server","loglevel":"INFO","msg":"this is info","pid":"4124","timestamp":"2019-02-10T23:54:07.854+09:00","username":"fuga-user","version":"1.0.0"}
+{"filename":"[sample.go:18]","func":"main","gid":"gid:1","hostname":"hoge.server","loglevel":"INFO","msg":"this is info","pid":"4124","timestamp":"2019-02-10T23:54:07.854+09:00","username":"fuga-user","version":"1.0.0"}
 ```

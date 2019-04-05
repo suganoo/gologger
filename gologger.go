@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -70,6 +71,7 @@ type Gologger struct {
 
 var f *(os.File)
 var err error
+var lock sync.Mutex
 
 func init() {
 	// these map are for json format.
@@ -86,6 +88,8 @@ func init() {
 }
 
 func (g Gologger) Write(bytes []byte) (int, error) {
+	lock.Lock()
+	defer lock.Unlock()
 	msg := string(bytes)
 	return f.Write(([]byte)(msg))
 }
@@ -171,6 +175,10 @@ func jsonFormat(g *Gologger, logLevel string, msg string) (logMsg string){
 			// set log message
 			logMap[knm[item]] = msg
 		
+		case KeyGoroutineId:
+			// split goroutine id, ex.  gid:1 -> 1
+			logMap[knm[item]] = strings.Split(g.getItem(item), ":")[1]
+		
 		default:
 			logMap[knm[item]] = g.getItem(item)
 		}
@@ -209,7 +217,7 @@ func (g *Gologger)getItem(logType KeyId) (string) {
 		runtime.Stack(rsb, false)
 		// so get goroutine id
 		// "goroutine 1 [running]:" --> "1"
-		return "GrtnID:" + strings.Split(string(rsb)," ")[1]
+		return KeyNameGoroutineId + ":" + strings.Split(string(rsb)," ")[1]
 
 	case KeyUserName:
 		// set user name
