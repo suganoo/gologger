@@ -43,7 +43,19 @@ func main() {
 go run gologgerSample.go
 ```
 ## Output
-testlog.log
+default output items are ...
+- timestamp
+- log level
+- host server name
+- process ID
+- goroutine ID
+- user name
+- version (product version)
+- log message
+- function name
+- file name
+
+example
 ```testlog.log
 2018-02-21T10:07:44.277+09:00	INFO	hoge.sever	3892	gid:1	fuga-user	1.0.0	this is info	main	[gologgerSample.go:18]
 2018-02-21T10:07:44.277+09:00	INFO	hoge.sever	3892	gid:1	fuga-user	1.0.0	msg : hogehoge	main	[gologgerSample.go:19]
@@ -54,7 +66,7 @@ testlog.log
 2018-02-21T10:07:44.277+09:00	DEBUG	hoge.sever	3892	gid:1	fuga-user	1.0.0	this is debug xxx	main	[gologgerSample.go:26]
 ```
 ### Stdout
-if set empty in "Logfile", it shows log in os.Stdout.
+As setting empty in "Logfile", it shows log in os.Stdout.
 ```
 glog = gologger.NewGologger(gologger.Configuration{})
 glog.Info("test")
@@ -124,5 +136,5 @@ glog.SetOutputFormat(gologger.FmtJSON)
 ```
 ```
 ex.
-{"filename":"[sample.go:18]","func":"main","gid":"gid:1","hostname":"hoge.server","loglevel":"INFO","msg":"this is info","pid":"4124","timestamp":"2019-02-10T23:54:07.854+09:00","username":"fuga-user","version":"1.0.0"}
+{"filename":"[sample.go:18]","func":"main","gid":"1","hostname":"hoge.server","loglevel":"INFO","msg":"this is info","pid":"4124","timestamp":"2019-02-10T23:54:07.854+09:00","username":"fuga-user","version":"1.0.0"}
 ```
