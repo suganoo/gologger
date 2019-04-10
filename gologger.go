@@ -6,20 +6,21 @@ See https://github.com/suganoo/gologger
 package gologger
 
 import (
-	"errors"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"os/user"
 	"runtime"
-	"strings"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
 type KeyId int
+
 const (
 	KeyTimestamp KeyId = iota
 	KeyLogLevel
@@ -35,6 +36,7 @@ const (
 
 // these are keys for json format.
 var knm map[KeyId]string = map[KeyId]string{}
+
 const (
 	KeyNameTimestamp   = "timestamp"
 	KeyNameLogLevel    = "loglevel"
@@ -49,14 +51,15 @@ const (
 )
 
 type OutputFmtType int
+
 const (
-	FmtDefault   OutputFmtType = iota
+	FmtDefault OutputFmtType = iota
 	FmtJSON
 )
 
 type Statement struct {
-	hostname  string
-	username  string
+	hostname string
+	username string
 }
 
 type Configuration struct {
@@ -70,7 +73,7 @@ type Configuration struct {
 }
 
 type Gologger struct {
-	Config     Configuration
+	Config Configuration
 	FormatterInterface
 }
 
@@ -80,16 +83,16 @@ var lock sync.Mutex
 
 func init() {
 	// these map are for json format.
-	knm[KeyTimestamp]   = KeyNameTimestamp
-	knm[KeyLogLevel]    = KeyNameLogLevel
-	knm[KeyHostName]    = KeyNameHostName
-	knm[KeyProcessId]   = KeyNameProcessId
+	knm[KeyTimestamp] = KeyNameTimestamp
+	knm[KeyLogLevel] = KeyNameLogLevel
+	knm[KeyHostName] = KeyNameHostName
+	knm[KeyProcessId] = KeyNameProcessId
 	knm[KeyGoroutineId] = KeyNameGoroutineId
-	knm[KeyUserName]    = KeyNameUserName
-	knm[KeyVersion]     = KeyNameVersion
-	knm[KeyMessage]     = KeyNameMessage
-	knm[KeyFunc]        = KeyNameFunc
-	knm[KeyFileName]    = KeyNameFileName
+	knm[KeyUserName] = KeyNameUserName
+	knm[KeyVersion] = KeyNameVersion
+	knm[KeyMessage] = KeyNameMessage
+	knm[KeyFunc] = KeyNameFunc
+	knm[KeyFileName] = KeyNameFileName
 }
 
 // Write logs as output.
@@ -100,40 +103,40 @@ func (g Gologger) Write(bytes []byte) (int, error) {
 	return f.Write(([]byte)(msg))
 }
 
-func (g *Gologger)getHostname() string {
+func (g *Gologger) getHostname() string {
 	return g.Config.st.hostname
 }
 
-func (g *Gologger)getUsername() string {
+func (g *Gologger) getUsername() string {
 	return g.Config.st.username
 }
 
-func (g *Gologger)getVersion() string {
+func (g *Gologger) getVersion() string {
 	return g.Config.Version
 }
 
 // SetVersion changes the version.
-func (g *Gologger)SetVersion(vers string) {
+func (g *Gologger) SetVersion(vers string) {
 	g.Config.Version = vers
 }
 
 // SetSeparator changes the separator of log.
-func (g *Gologger)SetSeparator(sep string) {
+func (g *Gologger) SetSeparator(sep string) {
 	g.Config.Separator = sep
 }
 
 // SetTimeFormat defines the time format.
-func (g *Gologger)SetTimeFormat(tf string) {
+func (g *Gologger) SetTimeFormat(tf string) {
 	g.Config.TimeFormat = tf
 }
 
 // SetItemsList defines what items should be shown in log.
-func (g *Gologger)SetItemsList(itemsList []KeyId) {
+func (g *Gologger) SetItemsList(itemsList []KeyId) {
 	g.Config.LogItems = itemsList
 }
 
 // SetOutputFormat defines log output format.
-func (g *Gologger)SetOutputFormat(typeId OutputFmtType) {
+func (g *Gologger) SetOutputFormat(typeId OutputFmtType) {
 	switch typeId {
 	case FmtDefault:
 		g.FormatterInterface = MarshallFunc(defaultFormat)
@@ -150,22 +153,23 @@ type FormatterInterface interface {
 }
 
 type MarshallFunc func(*Gologger, string, string) string
-func (m MarshallFunc) marshall(g *Gologger, logLevel string, msg string) (logMsg string){
+
+func (m MarshallFunc) marshall(g *Gologger, logLevel string, msg string) (logMsg string) {
 	return m(g, logLevel, msg)
 }
 
-func defaultFormat(g *Gologger, logLevel string, msg string) (logMsg string){
+func defaultFormat(g *Gologger, logLevel string, msg string) (logMsg string) {
 
 	for _, item := range g.Config.LogItems {
 		switch item {
 		case KeyLogLevel:
 			// set log level
 			logMsg = logMsg + logLevel + g.Config.Separator
-		
+
 		case KeyMessage:
 			// set log message
-			logMsg = logMsg + msg      + g.Config.Separator
-		
+			logMsg = logMsg + msg + g.Config.Separator
+
 		default:
 			logMsg = logMsg + g.getItem(item) + g.Config.Separator
 		}
@@ -173,7 +177,7 @@ func defaultFormat(g *Gologger, logLevel string, msg string) (logMsg string){
 	return
 }
 
-func jsonFormat(g *Gologger, logLevel string, msg string) (logMsg string){
+func jsonFormat(g *Gologger, logLevel string, msg string) (logMsg string) {
 
 	logMap := map[string]string{}
 	for _, item := range g.Config.LogItems {
@@ -181,15 +185,15 @@ func jsonFormat(g *Gologger, logLevel string, msg string) (logMsg string){
 		case KeyLogLevel:
 			// set log level
 			logMap[knm[item]] = logLevel
-		
+
 		case KeyMessage:
 			// set log message
 			logMap[knm[item]] = msg
-		
+
 		case KeyGoroutineId:
 			// split goroutine id, ex.  gid:1 -> 1
 			logMap[knm[item]] = strings.Split(g.getItem(item), ":")[1]
-		
+
 		default:
 			logMap[knm[item]] = g.getItem(item)
 		}
@@ -199,7 +203,7 @@ func jsonFormat(g *Gologger, logLevel string, msg string) (logMsg string){
 	return
 }
 
-func (g *Gologger)getItem(logType KeyId) (string) {
+func (g *Gologger) getItem(logType KeyId) string {
 
 	switch logType {
 	case KeyTimestamp:
@@ -211,12 +215,12 @@ func (g *Gologger)getItem(logType KeyId) (string) {
 		// set hostname
 		//return st.getHostname()
 		return g.getHostname()
-	
+
 	case KeyProcessId:
 		// set process id
 		pid := os.Getpid()
 		return strconv.Itoa(pid)
-	
+
 	case KeyGoroutineId:
 		// get and set goroutine id
 		rsb := make([]byte, 64)
@@ -228,34 +232,34 @@ func (g *Gologger)getItem(logType KeyId) (string) {
 		runtime.Stack(rsb, false)
 		// so get goroutine id
 		// "goroutine 1 [running]:" --> "1"
-		return KeyNameGoroutineId + ":" + strings.Split(string(rsb)," ")[1]
+		return KeyNameGoroutineId + ":" + strings.Split(string(rsb), " ")[1]
 
 	case KeyUserName:
 		// set user name
 		//return st.getUsername()
 		return g.getUsername()
-	
+
 	case KeyVersion:
 		// set version
 		return g.getVersion()
-	
+
 	case KeyFunc, KeyFileName:
 		// call file statement
 		programCounter, filePath, fileLineNum, _ := runtime.Caller(4)
-		filePathArry := strings.Split(fmt.Sprintf("%v",filePath), "/")
-	
-		if (logType == KeyFunc){
+		filePathArry := strings.Split(fmt.Sprintf("%v", filePath), "/")
+
+		if logType == KeyFunc {
 			// set called function name
 			fn := runtime.FuncForPC(programCounter)
 			fnNameArry := strings.Split(fn.Name(), ".")
 
 			return fnNameArry[1]
 		}
-		if (logType == KeyFileName){
+		if logType == KeyFileName {
 			// set filename with line number
-			return "[" + filePathArry[len(filePathArry) - 1] + ":" + strconv.Itoa(fileLineNum) + "]"
+			return "[" + filePathArry[len(filePathArry)-1] + ":" + strconv.Itoa(fileLineNum) + "]"
 		}
-	
+
 	default:
 		return ""
 	}
@@ -263,7 +267,7 @@ func (g *Gologger)getItem(logType KeyId) (string) {
 }
 
 // NewGologger returns Gologger object.
-func NewGologger(conf Configuration) (*Gologger) {
+func NewGologger(conf Configuration) *Gologger {
 	gl := &Gologger{
 		Config: conf,
 	}
@@ -271,7 +275,7 @@ func NewGologger(conf Configuration) (*Gologger) {
 	if gl.Config.Logfile == "" {
 		f = os.Stdout
 	} else {
-		f, err = os.OpenFile(gl.Config.Logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND,0644)
+		f, err = os.OpenFile(gl.Config.Logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {
 			errors.New("Error opening log file!" + err.Error())
 			os.Exit(1)
@@ -285,7 +289,7 @@ func NewGologger(conf Configuration) (*Gologger) {
 	hostname, _ := os.Hostname()
 	gl.Config.st.hostname = hostname
 
-	user, _  := user.Current()
+	user, _ := user.Current()
 	gl.Config.st.username = user.Username
 
 	// version
@@ -325,23 +329,25 @@ func NewGologger(conf Configuration) (*Gologger) {
 }
 
 // MuteDebug mutes debug log.
-func (g *Gologger)MuteDebug() {
+func (g *Gologger) MuteDebug() {
 	g.Config.ShowDebug = false
 }
 
 // UnmuteDebug unmutes debug log.
-func (g *Gologger)UnmuteDebug() {
+func (g *Gologger) UnmuteDebug() {
 	g.Config.ShowDebug = true
 }
 
 // CloseFile close the output file.
-func (g *Gologger)CloseFile() {
+func (g *Gologger) CloseFile() {
 	f.Close()
 }
 
 // Debug writes log as Debug level.
-func (g *Gologger)Debug(v ...interface{}) {
-        if ! g.Config.ShowDebug { return }
+func (g *Gologger) Debug(v ...interface{}) {
+	if !g.Config.ShowDebug {
+		return
+	}
 
 	msg := fmt.Sprintf("%v", v)
 	logMsg := g.marshall(g, "DEBUG", msg[1:len(msg)-1])
@@ -349,23 +355,22 @@ func (g *Gologger)Debug(v ...interface{}) {
 }
 
 // Info writes log as Info level.
-func (g *Gologger)Info(v ...interface{}) {
+func (g *Gologger) Info(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
 	logMsg := g.marshall(g, "INFO", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 // Warning writes log as Warning level.
-func (g *Gologger)Warning(v ...interface{}) {
+func (g *Gologger) Warning(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
 	logMsg := g.marshall(g, "WARNING", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
 
 // Error writes log as Error level.
-func (g *Gologger)Error(v ...interface{}) {
+func (g *Gologger) Error(v ...interface{}) {
 	msg := fmt.Sprintf("%v", v)
 	logMsg := g.marshall(g, "ERROR", msg[1:len(msg)-1])
 	log.Println(logMsg)
 }
-

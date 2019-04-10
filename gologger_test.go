@@ -1,14 +1,14 @@
 package gologger
 
 import (
-	"fmt"
 	"bufio"
-	"os"
-	"testing"
-	"regexp"
-	"strings"
-	"strconv"
+	"fmt"
 	"io/ioutil"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+	"testing"
 )
 
 var testlog = "gologger_test.log"
@@ -16,7 +16,7 @@ var glog *Gologger
 
 func init() {
 	os.Remove(testlog)
-	glog = NewGologger(Configuration{Logfile : testlog})
+	glog = NewGologger(Configuration{Logfile: testlog})
 }
 
 func TestGetVersion(t *testing.T) {
@@ -83,10 +83,10 @@ func TestTimeFormat(t *testing.T) {
 	data, _ := ioutil.ReadFile(testlog)
 	t.Log(string(data))
 
-	if ! r.MatchString(string(data)) {
+	if !r.MatchString(string(data)) {
 		t.Error("Error time format in log.")
 	}
-	
+
 	glog.CloseFile()
 	os.Remove(testlog)
 	glog.SetTimeFormat("2006-01-02T15:04:05.000-07:00")
@@ -155,7 +155,7 @@ func TestVersion(t *testing.T) {
 	if dl[0] != "1.0.0" {
 		t.Error("Error version in log.")
 	}
-	
+
 	glog.CloseFile()
 	os.Remove(testlog)
 }
@@ -175,7 +175,7 @@ func TestHostname(t *testing.T) {
 	if dl[0] != hostname {
 		t.Error("Error hostname in log.")
 	}
-	
+
 	glog.CloseFile()
 	os.Remove(testlog)
 }
@@ -195,7 +195,7 @@ func TestUsername(t *testing.T) {
 	if dl[0] != username {
 		t.Error("Error username in log.")
 	}
-	
+
 	glog.CloseFile()
 	os.Remove(testlog)
 }
@@ -210,7 +210,7 @@ func TestMessage(t *testing.T) {
 		Id   int
 		Name string
 	}
-	var hs = HogeStruct{Id:1234,Name:"suganoo"}
+	var hs = HogeStruct{Id: 1234, Name: "suganoo"}
 	list := []int{1, 2, 3, 4}
 
 	glog.Info(msg)
@@ -256,7 +256,7 @@ func TestMessage(t *testing.T) {
 		}
 		i++
 	}
-	
+
 	glog.CloseFile()
 	os.Remove(testlog)
 }
@@ -274,10 +274,10 @@ func TestProcessId(t *testing.T) {
 	t.Log(string(data))
 	dl := strings.Split(string(data), "\t")
 
-	if ! r.MatchString(dl[0]) {
+	if !r.MatchString(dl[0]) {
 		t.Error("Error process id in log.")
 	}
-	
+
 	glog.CloseFile()
 	os.Remove(testlog)
 }
@@ -295,10 +295,10 @@ func TestGoroutineId(t *testing.T) {
 	t.Log(string(data))
 	dl := strings.Split(string(data), "\t")
 
-	if ! r.MatchString(dl[0]) {
+	if !r.MatchString(dl[0]) {
 		t.Error("Error goroutine id in log.")
 	}
-	
+
 	glog.CloseFile()
 	os.Remove(testlog)
 }
@@ -314,10 +314,10 @@ func TestFileName(t *testing.T) {
 
 	data, _ := ioutil.ReadFile(testlog)
 	t.Log(string(data))
-	if ! r.MatchString(string(data)) {
+	if !r.MatchString(string(data)) {
 		t.Error("Error filename in log.")
 	}
-	
+
 	glog.CloseFile()
 	os.Remove(testlog)
 }
@@ -335,7 +335,7 @@ func TestFunc(t *testing.T) {
 	if strings.Split(string(data), "\t")[0] != "TestFunc" {
 		t.Error("Error function name in log.")
 	}
-	
+
 	glog.CloseFile()
 	os.Remove(testlog)
 }
